@@ -27,5 +27,3 @@ engine = db.create_engine(DATABASE_URI)  # creating engine
 Session = sessionmaker(bind=engine)      # making global session 
 
 s = Session()                            # calling off single session from global Session
-
-
