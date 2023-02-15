@@ -2,48 +2,70 @@ from main import engine
 from sqlalchemy import text , bindparam 
 import datetime as dt
 import click
+import logging
 
-@click.command()
-@click.option('--firstName' , prompt = 'Enter the first name : ', help = 'first name')
-@click.option('--lastName' , prompt = 'Enter the last name : ',help = 'last name')
-@click.option('--address' , prompt = 'Enter the address :',help = 'address')
-@click.option('--dob',prompt = 'Enter the DOB', type=click.DateTime(formats=["%Y-%M-%D"]))
+logging.basicConfig(filename='dbquerieslog.log',level=logging.DEBUG,format='%(levelname)s:%(message)s:%(asctime)s')
 
-with engine.connect() as conn :
+def insert(firstname,lastname,address,dob):
+
+    logging.debug(f"firstname :  {firstname} lastname : {lastname} address : {address} dob : {dob}")
     
-    # insert 
-    '''
-    conn.execute(
-        text("INSERT INTO customer (first_name,last_name,address,dob,created_by,updated_by) VALUES (:first_name,:last_name,:address,:dob,:created_by,:updated_by)"),
-        [{"first_name": 'Dilip', "last_name": 'Mehta', "address": 'Gurgaon', "dob": dt.date(1996, 5, 30), "created_by": dt.datetime.now(), "updated_by": dt.datetime.now()}],
-    )
-    conn.commit()  
-    '''
+    sqlStatement = text("INSERT INTO customer (first_name,last_name,address,dob,created_by,updated_by) VALUES (:first_name,:last_name,:address,:dob,:created_by,:updated_by)")
+    logging.debug(sqlStatement)
 
-    # update
-    '''
-    # update : Change the column data where firstName = Ajay
-    # UPDATE user_account SET name=? WHERE user_account.name = ? 
-    actualdob = dt.date(1998, 11, 5)
-    print(type(actualdob))
-    conn.execute(text(f"UPDATE customer SET last_name = 'Kumar' where first_name = 'Ajay'"))
-    conn.commit() 
-    '''
-
-    # select statement 
+    with engine.connect() as conn:
+        operation = conn.execute(sqlStatement , [{"first_name": firstname, "last_name": lastname, "address": address, "dob" : dob, "created_by": dt.datetime.now(), "updated_by": dt.datetime.now()}],)
+        logging.debug(operation)
+        conn.commit()
     
-    records = conn.execute(text("SELECT * FROM customer"))
-    for eachRecord in records:
-        print(eachRecord) 
+    logging.info("Data inserted in database")
 
+
+
+def select():
+    sqlStatement = input('Enter the QUERY')
+    with engine.connect() as conn :
+        records = conn.execute(text(sqlStatement))
+        for eachRecord in records :
+            print(eachRecord) 
+
+def update(firstname,lastname,address,dob):
+    
+    logging.debug(f"firstname :  {firstname} lastname : {lastname} address : {address} dob : {dob}")
+
+    with engine.connect() as conn :
+
+        sqlStatement = text("UPDATE customer SET address = (:address) WHERE first_name = (:first_name)")
+        logging.debug(sqlStatement)
+        conn.execute(sqlStatement, [{ "address": address, "first_name": firstname}],)
+        conn.commit() 
+
+    logging.info("Updated db") 
+
+
+def delete(firstname,lastname,address,dob):
+    sqlStatement = text("DELETE FROM customer WHERE first_name = (:first_name) AND address = (:address)")
+    with engine.connect() as conn :
+        conn.execute(sqlStatement,[{"first_name" : firstname , "address" : address}],)
+        conn.commit() 
+
+
+
+if __name__ == '__main__':
+    mapping = {"i": insert, "u": update , "s": select, "d": delete}
+    
+    @click.command()
+    @click.option("--toq", default="s")
+    @click.option('-fn','--firstname' , help = 'first name')
+    @click.option('-ln','--lastname' ,help = 'last name')
+    @click.option('-ad','--address' ,help = 'address')
+    @click.option('-d','--dob', type=click.DateTime(formats=["%Y-%m-%d"]),default = str(dt.date.today()))
     
 
-    # delete statement 
-    '''
-    st = conn.execute(text("DELETE FROM customer WHERE first_name = 'Dilip'"))
-    conn.commit()
-    print(st)
-    '''
+    def runner(toq,firstname,lastname,address,dob):
+        mapping[toq](firstname,lastname,address,dob)
+
+    runner()         
 
     
 
