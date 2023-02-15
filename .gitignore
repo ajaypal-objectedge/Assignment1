@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 __pycache__
 .txt
 CustomerDataBase.sql
 dbquerieslog.log
 testdb.py
+=======
+CustomerDataBase.sql
+testdb.py
+__pycache__
+>>>>>>> 5047ff5e0f4a718f872e9fad1db80c9d8ec9d6c2
