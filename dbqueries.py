@@ -12,43 +12,66 @@ def insert(firstname,lastname,address,dob):
     
     sqlStatement = text("INSERT INTO customer (first_name,last_name,address,dob,created_by,updated_by) VALUES (:first_name,:last_name,:address,:dob,:created_by,:updated_by)")
     logging.debug(sqlStatement)
-
-    with engine.connect() as conn:
-        operation = conn.execute(sqlStatement , [{"first_name": firstname, "last_name": lastname, "address": address, "dob" : dob, "created_by": dt.datetime.now(), "updated_by": dt.datetime.now()}],)
-        logging.debug(operation)
-        conn.commit()
     
-    logging.info("Data inserted in database")
+    try :
+        with engine.connect() as conn:
+            operation = conn.execute(sqlStatement , [{"first_name": firstname, "last_name": lastname, "address": address, "dob" : dob, "created_by": dt.datetime.now(), "updated_by": dt.datetime.now()}],)
+            logging.info("sql query executed ! Ready for commit")
+            conn.commit()  
+    except Exception as e :
+        logging.exception(f"Operation not performed due to {e}")        
+    else :
+        logging.info("Data inserted in database")
 
 
 
-def select():
-    sqlStatement = input('Enter the QUERY')
-    with engine.connect() as conn :
-        records = conn.execute(text(sqlStatement))
-        for eachRecord in records :
-            print(eachRecord) 
+def select(firstname , lastname , address , dob):
+
+    logging.debug(f"firstname :  {firstname} lastname : {lastname} address : {address} dob : {dob}")
+    sqlStatement = text("SELECT * FROM customer WHERE first_name = (:first_name)")
+
+    try :
+        with engine.connect() as conn :
+            records = conn.execute(sqlStatement,[{"first_name" : firstname }],)
+            for eachRecord in records :
+                print(eachRecord) 
+    except Exception as e :
+        logging.exception(f"Operation not performed due to {e}")        
+    else :
+        logging.info("Data selected from database")
 
 def update(firstname,lastname,address,dob):
     
     logging.debug(f"firstname :  {firstname} lastname : {lastname} address : {address} dob : {dob}")
+    sqlStatement = text("UPDATE customer SET address = (:address) WHERE first_name = (:first_name)")
 
-    with engine.connect() as conn :
-
-        sqlStatement = text("UPDATE customer SET address = (:address) WHERE first_name = (:first_name)")
-        logging.debug(sqlStatement)
-        conn.execute(sqlStatement, [{ "address": address, "first_name": firstname}],)
-        conn.commit() 
-
-    logging.info("Updated db") 
+    try :
+        with engine.connect() as conn :
+            logging.debug(sqlStatement)
+            conn.execute(sqlStatement, [{ "address": address, "first_name": firstname}],)
+            logging.info("sql query executed ! Ready for commit")
+            conn.commit() 
+    except Exception as e :
+        logging.exception(f"Operation not performed due to {e}")        
+    else : 
+        logging.info("Data updated in database") 
 
 
 def delete(firstname,lastname,address,dob):
-    sqlStatement = text("DELETE FROM customer WHERE first_name = (:first_name) AND address = (:address)")
-    with engine.connect() as conn :
-        conn.execute(sqlStatement,[{"first_name" : firstname , "address" : address}],)
-        conn.commit() 
 
+    logging.debug(f"firstname :  {firstname} lastname : {lastname} address : {address} dob : {dob}")
+    sqlStatement = text("DELETE FROM customer WHERE first_name = (:first_name) AND address = (:address)")
+    
+    try :
+        with engine.connect() as conn :
+            logging.debug(sqlStatement)
+            conn.execute(sqlStatement,[{"first_name" : firstname , "address" : address}],)
+            logging.info("sql query executed ! Ready for commit")
+            conn.commit()
+    except Exception as e :
+        logging.exception(f"Operation not performed due to {e}")        
+    else : 
+        logging.info("Data deletec from database")
 
 
 if __name__ == '__main__':
@@ -67,5 +90,5 @@ if __name__ == '__main__':
 
     runner()         
 
-    print("Process completed")
+    
 
